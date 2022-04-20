@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 )
 
@@ -26,9 +27,14 @@ func FnamePro(sel int) func(string) string {
 		return pre + "." + bac
 	}
 }
-func storefile(name string) {
+func storefile(name string, filetype int, mesg []string) {
 	//创建文件存储爬取的信息
-	file, err := os.Create(path + name)
+	Cname := FnamePro(filetype)
+	file, err := os.Create(Cname(path + name))
+	for _, s := range mesg {
+		file.WriteString(s)
+	}
 	check(err)
 	file.Close()
+	log.Println("文件生成成功")
 }

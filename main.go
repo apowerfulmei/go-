@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gocolly/colly"
+	"time"
 )
 
 var urlname = "https://top.baidu.com/board?tab=realtime"
@@ -12,6 +13,7 @@ func main() {
 	var nums int = 0
 	var types string = Hot
 	var name string = "百度头条"
+	StoreS := make([]string, 100)
 	db := linkdb()
 	defer closedb(db)
 	c := colly.NewCollector()
@@ -22,8 +24,8 @@ func main() {
 		//fmt.Println(e)
 		title := e.DOM.Find(".c-single-text-ellipsis").Text()
 		hot := e.DOM.Find(".hot-index_1Bl1a").Text()
+		StoreS = append(StoreS, title+"	"+hot+"\n")
 		nums++
-		fmt.Printf("%d %8s %s\n", nums, hot, title)
 	})
 	c.Visit(urlname)
 	arow := formdata(name, types, nums)
@@ -35,5 +37,7 @@ func main() {
 	if order != "yes" {
 		return
 	}
+	//文件生成与数据库填充
+	storefile("baidu"+time.Now().String(), TXT, StoreS)
 	insertdata(formdata(name, types, nums), db)
 }
