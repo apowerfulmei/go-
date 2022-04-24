@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var curtime = time.Now().Format("2006-01-02")
+
 //爬取数据类型
 /*
 * pic	图片
@@ -52,9 +54,24 @@ func insertdata(data RowData, db *sql.DB) {
 	fmt.Println("数据插入成功")
 }
 
+func findbytime(db *sql.DB) {
+	//按照起止时间查询数据库
+	var startdate string
+	var enddate string
+	fmt.Println("进入查询界面")
+	fmt.Printf("请输入查询起始日期：")
+	fmt.Scanf("%s\n", &startdate)
+	fmt.Printf("请输入查询截至日期：")
+	fmt.Scanf("%s\n", &enddate)
+	fmt.Println(startdate, enddate)
+	row, err := db.Query("select * from " + tbname + " where time>='" + startdate + "' and time<='" + enddate + "'")
+	check(err)
+	printrow(row)
+	fmt.Println("查询完毕！")
+}
+
 func formdata(n string, d string, num int) RowData {
 	var row RowData
-	curtime := time.Now().Format("2006-01-02")
 	row.name = n
 	row.time = curtime
 	row.dtype = d
@@ -81,6 +98,6 @@ func printrow(row *sql.Rows) {
 	var sayhi RowData
 	for row.Next() {
 		row.Scan(&sayhi.name, &sayhi.time, &sayhi.dtype, &sayhi.num)
-		fmt.Println(sayhi.name)
+		fmt.Printf("%s %s %s %d\n", sayhi.name, sayhi.time, sayhi.dtype, sayhi.num)
 	}
 }
