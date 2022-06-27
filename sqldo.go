@@ -12,6 +12,7 @@ import (
 	_ "database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"regexp"
 	"time"
 )
 
@@ -32,20 +33,24 @@ type RowData struct {
 	num   int
 }
 
+type myDB struct {
+	*sql.DB
+}
+
 var dbname = "testdb"
 var tbname = "getdata"
 
-func linkdb() *sql.DB {
+func (db *myDB) linkdb() {
 	//连接getdata数据库
-	db, err := sql.Open("mysql", "root:528320@tcp(127.0.0.1:3306)/"+dbname)
+	var err error
+	db.DB, err = sql.Open("mysql", "root:528320@tcp(127.0.0.1:3306)/"+dbname)
 	check(err)
 	row, err := db.Query("select * from " + tbname + " where dtype='mky'")
 	check(err)
 	printrow(row)
-	return db
 }
 
-func insertdata(data RowData, db *sql.DB) {
+func (db *myDB) insertdata(data RowData) {
 	//插入新数据
 	_, err := db.Exec("insert into "+tbname+
 		"(name,time,dtype,num) "+
@@ -54,7 +59,7 @@ func insertdata(data RowData, db *sql.DB) {
 	fmt.Println("数据插入成功")
 }
 
-func findbytime(db *sql.DB) {
+func (db *myDB) findbytime() {
 	//按照起止时间查询数据库
 	var startdate string
 	var enddate string
@@ -63,7 +68,10 @@ func findbytime(db *sql.DB) {
 	fmt.Scanf("%s\n", &startdate)
 	fmt.Printf("请输入查询截至日期：")
 	fmt.Scanf("%s\n", &enddate)
-	fmt.Println(startdate, enddate)
+	if !checkformat(startdate, enddate) {
+		fmt.Println("输入有误，查询失败")
+		return
+	}
 	row, err := db.Query("select * from " + tbname + " where time>='" + startdate + "' and time<='" + enddate + "'")
 	check(err)
 	printrow(row)
@@ -79,7 +87,7 @@ func formdata(n string, d string, num int) RowData {
 	return row
 }
 
-func closedb(db *sql.DB) {
+func (db *myDB) closedb() {
 	//关闭数据库
 	db.Close()
 	fmt.Println("Database is closed!")
@@ -100,4 +108,16 @@ func printrow(row *sql.Rows) {
 		row.Scan(&sayhi.name, &sayhi.time, &sayhi.dtype, &sayhi.num)
 		fmt.Printf("%s %s %s %d\n", sayhi.name, sayhi.time, sayhi.dtype, sayhi.num)
 	}
+}
+
+func checkformat(ss ...string) bool {
+	pattern := "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+	for _, s := range ss {
+		result, err := regexp.MatchString(pattern, s)
+		check(err)
+		if !result {
+			return false
+		}
+	}
+	return true
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 )
@@ -37,4 +38,13 @@ func storefile(name string, filetype int, mesg []string) {
 	check(err)
 	file.Close()
 	log.Println("文件生成成功")
+}
+func printfile(name string, filetype int) {
+	//展示文件内容，以时间为查询条件
+	var mesg []byte
+	Cname := FnamePro(filetype)
+	file, err := os.Open(Cname(path + name))
+	check(err)
+	file.Read(mesg)
+	fmt.Println(string(mesg))
 }
